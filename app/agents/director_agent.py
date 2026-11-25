@@ -40,7 +40,8 @@ class DirectorAgent:
         custom_design_prompt: Optional[str] = None,
         voice: str = "Reference Voice Clone (100% Match)",
         background_music: str = "inspiring_educational",
-        target_duration: int = 120
+        target_duration: int = 120,
+        generate_images: bool = False
     ) -> Dict[str, Any]:
         """
         Stage 1: Autonomous creation flow up to the interactive approval board.
@@ -85,17 +86,24 @@ class DirectorAgent:
                 if "source_reference" in raw_scenes[idx]:
                     ds["source_reference"] = raw_scenes[idx]["source_reference"]
 
-        # 3. Image Agent renders 16:9 visuals
-        scenes_with_images = image_agent.generate_storyboard_images(designed_scenes)
-        for s in scenes_with_images:
-            if s.get("preview_url"):
-                s["image_history"] = [{
-                    "preview_url": s["preview_url"],
-                    "image_path": s.get("image_path", ""),
-                    "image_prompt": s.get("image_prompt", ""),
-                    "label": "Version 1",
-                    "timestamp": time.time()
-                }]
+        # 3. Image Agent renders 16:9 visuals (only if generate_images is requested)
+        if generate_images:
+            scenes_with_images = image_agent.generate_storyboard_images(designed_scenes)
+            for s in scenes_with_images:
+                if s.get("preview_url"):
+                    s["image_history"] = [{
+                        "preview_url": s["preview_url"],
+                        "image_path": s.get("image_path", ""),
+                        "image_prompt": s.get("image_prompt", ""),
+                        "label": "Version 1",
+                        "timestamp": time.time()
+                    }]
+        else:
+            scenes_with_images = designed_scenes
+            for s in scenes_with_images:
+                s["preview_url"] = None
+                s["image_path"] = ""
+                s["image_history"] = []
 
         # 4. Save to project_input.json for persistent state
         project_config = {

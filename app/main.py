@@ -261,6 +261,7 @@ async def create_storyboard(
     voice: Optional[str] = Form("Reference Voice Clone (100% Match)"),
     background_music: Optional[str] = Form("inspiring_educational"),
     target_duration: int = Form(120),
+    generate_images: bool = Form(False),
     file: Optional[UploadFile] = File(None)
 ):
     """
@@ -291,7 +292,8 @@ async def create_storyboard(
             custom_design_prompt=custom_design_prompt,
             voice=voice or "Reference Voice Clone (100% Match)",
             background_music=background_music or "inspiring_educational",
-            target_duration=target_duration
+            target_duration=target_duration,
+            generate_images=generate_images
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
