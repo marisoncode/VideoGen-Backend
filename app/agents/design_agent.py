@@ -90,14 +90,9 @@ class DesignAgent:
             cleaned_narr = self._clean_script_text(narration)
             # Ensure the action has concrete story subjects, not just empty camera movement words
             camera_movement_only = any(p in g_act.lower() for p in ["core visual concept", "educational demonstration", "visual concept", "student exploration"]) or len(g_act.split()) < 4
-            story_keywords = ["crow", "fox", "jackal", "vada", "grandmother", "dadi", "woman", "stove", "kitchen", "tree", "branch", "forest", "beak", "wall"]
-            has_story_subject = any(k in g_act.lower() for k in story_keywords)
 
-            if not g_act or camera_movement_only or not has_story_subject:
-                if cleaned_narr:
-                    action_raw = f"{cleaned_narr}, {g_act}" if g_act else cleaned_narr
-                else:
-                    action_raw = visual_action
+            if not g_act or camera_movement_only:
+                action_raw = visual_action
             else:
                 action_raw = g_act
 
@@ -151,11 +146,32 @@ class DesignAgent:
             s = re.sub(vada_regex, vada_desc, s, flags=re.IGNORECASE)
 
         # 2. Universal Human & Animal Anatomical Grounding:
-        # Guarantees that any human or animal character has connected head, neck, and body anatomy
         combined_text = f"{s} {narration}".lower()
-        has_human = bool(re.search(r'\b(man|woman|elderly|person|grandmother|grandpa|grandfather|child|boy|girl|king|queen|knight|prince|princess|chef|farmer|villager|dadi|character|astronaut|explorer|scientist|doctor|warrior|hero|she|he|her|his)\b', combined_text, re.IGNORECASE))
-        if has_human and not any(k in s.lower() for k in ["medium shot", "character portrait", "full body", "connected head"]):
-            s = f"medium shot character portrait, complete visible upper body with natural connected head, neck and torso, {s}"
+
+        # Check for Mother & Baby / Parent-Child Multi-Character Pair
+        is_parent_child = bool(re.search(r'\b(mother|mom|parent|caregiver|family)\b', combined_text, re.IGNORECASE)) and bool(re.search(r'\b(baby|infant|toddler|child)\b', combined_text, re.IGNORECASE))
+        if is_parent_child:
+            if not any(k in s.lower() for k in ["both characters", "mother and baby clearly visible", "two-character"]):
+                s = f"two-character medium shot featuring BOTH the loving mother and her adorable baby clearly visible together in the frame, mother warmly interacting with the baby, {s}"
+        else:
+            has_human = bool(re.search(r'\b(man|woman|elderly|person|grandmother|grandpa|grandfather|child|boy|girl|king|queen|knight|prince|princess|chef|farmer|villager|dadi|character|astronaut|explorer|scientist|doctor|warrior|hero|she|he|her|his)\b', combined_text, re.IGNORECASE))
+            if has_human and not any(k in s.lower() for k in ["medium shot", "character portrait", "full body", "connected head", "two-character"]):
+                s = f"medium shot character portrait, complete visible upper body with natural connected head, neck and torso, {s}"
+
+        # 2B. Material Grounding (Ensures required lesson materials are visibly present):
+        if "swing" in combined_text and not any(k in s.lower() for k in ["fabric swing", "infant swing", "cradle swing"]):
+            s += ", the baby is safely seated in a cozy fabric infant swing, gently supported by the mother's loving hands"
+        if "strawberry" in combined_text and "strawberry" not in s.lower():
+            s += ", the mother is holding a fresh bright red ripe strawberry for the baby to observe and smell"
+        if "mirror" in combined_text and not any(k in s.lower() for k in ["baby mirror", "floor mirror", "child-size mirror", "mirror"]):
+            s += ", the mother is holding a round child-safe baby mirror reflecting both smiling faces"
+
+        # 2C. Environmental Color-Bleed Prevention (Eliminates green skin and green studios):
+        if "mint" in s.lower() or "green" in s.lower():
+            s = re.sub(r'\b(in the )?(mint[- ]green studio|green studio)\b', 'in the bright modern educational studio with warm neutral cream lighting and RBIQ logo wall', s, flags=re.IGNORECASE)
+            s = re.sub(r'\b(mint[- ]green background|green background)\b', 'neutral warm cream and wood studio background with RBIQ logo wall', s, flags=re.IGNORECASE)
+            if "maya" in s.lower() and "warm radiant" not in s.lower():
+                s += ", Maya has natural warm radiant human skin tone and healthy authentic facial complexion (never green skin)"
 
         has_animal = bool(re.search(r'\b(fox|jackal|crow|bird|lion|tiger|bear|wolf|dog|puppy|cat|rabbit|deer|monkey|elephant|eagle|owl|sparrow|falcon|crocodile|dragon|dinosaur|snake|horse)\b', combined_text, re.IGNORECASE))
         if has_animal and not any(k in s.lower() for k in ["connected head", "cohesive animal", "complete animal", "avian anatomy", "connected body", "natural connected"]):
