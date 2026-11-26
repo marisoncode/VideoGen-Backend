@@ -34,7 +34,7 @@ class DirectorAgent:
         live_url: Optional[str] = None,
         chapter_topic: Optional[str] = None,
         target_audience: Optional[str] = None,
-        design_style: str = "cinematic_realistic",
+        design_style: str = "pixar_3d",
         custom_character: Optional[str] = None,
         custom_environment: Optional[str] = None,
         custom_design_prompt: Optional[str] = None,
@@ -70,7 +70,7 @@ class DirectorAgent:
         # 2. Design Agent infuses visual art direction and character prompts
         designed_scenes = design_agent.design_scenes(
             scenes=raw_scenes,
-            style_id=design_style or "cinematic_realistic",
+            style_id=design_style or "pixar_3d",
             custom_character=custom_character,
             custom_environment=custom_environment,
             custom_design_prompt=custom_design_prompt

@@ -84,7 +84,7 @@ class CustomVideoPayload(BaseModel):
     target_audience: Optional[str] = "Middle School (Grade 6-8)"
     voice: Optional[str] = "Reference Voice Clone (100% Match)"
     background_music: Optional[str] = "inspiring_educational"
-    design_style: Optional[str] = "cinematic_realistic"
+    design_style: Optional[str] = "pixar_3d"
     target_duration: Optional[int] = 120
     scenes: Optional[List[Dict[str, Any]]] = []
     demonstration_scenes: Optional[List[Dict[str, Any]]] = None
@@ -254,7 +254,7 @@ async def create_storyboard(
     live_url: Optional[str] = Form(None),
     chapter_topic: Optional[str] = Form(None),
     target_audience: Optional[str] = Form("Middle School (Grade 6-8)"),
-    design_style: Optional[str] = Form("cinematic_realistic"),
+    design_style: Optional[str] = Form("pixar_3d"),
     custom_character: Optional[str] = Form(None),
     custom_environment: Optional[str] = Form(None),
     custom_design_prompt: Optional[str] = Form(None),
@@ -286,7 +286,7 @@ async def create_storyboard(
             live_url=live_url,
             chapter_topic=chapter_topic,
             target_audience=target_audience,
-            design_style=design_style or "cinematic_realistic",
+            design_style=design_style or "pixar_3d",
             custom_character=custom_character,
             custom_environment=custom_environment,
             custom_design_prompt=custom_design_prompt,

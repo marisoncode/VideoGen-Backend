@@ -52,7 +52,7 @@ class DesignAgent:
     def design_scenes(
         self,
         scenes: List[Dict[str, Any]],
-        style_id: str = "cinematic_realistic",
+        style_id: str = "pixar_3d",
         custom_character: Optional[str] = None,
         custom_environment: Optional[str] = None,
         custom_design_prompt: Optional[str] = None
@@ -60,9 +60,9 @@ class DesignAgent:
         """
         Takes raw scenes from ScriptAgent and crafts contextually accurate visual prompts,
         motion prompts, and camera movements conforming to the script's actual topic.
-        Default style is Realistic Educational Cinema.
+        Default style is 3D Pixar Animation.
         """
-        style = self.STYLE_PRESETS.get(style_id, self.STYLE_PRESETS["cinematic_realistic"])
+        style = self.STYLE_PRESETS.get(style_id, self.STYLE_PRESETS["pixar_3d"])
         auto_motions = ["zoom_in", "pan_right", "zoom_out", "pan_left"]
 
         designed_scenes = []
