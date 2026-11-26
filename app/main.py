@@ -13,6 +13,7 @@ from typing import Optional, Dict, Any, List
 from app.core.config import settings
 from app.services.pipeline_service import pipeline_service
 from app.services.replicate_service import replicate_service
+from app.services.magic_hour_service import magic_hour_service
 from app.agents import (
     script_agent,
     design_agent,
@@ -69,6 +70,9 @@ def cleanup_obsolete_files():
 # Schemas
 class ReplicateConfigPayload(BaseModel):
     api_token: str
+
+class MagicHourConfigPayload(BaseModel):
+    api_key: str
 
 class CloudflareConfigPayload(BaseModel):
     account_id: str
@@ -244,6 +248,54 @@ def update_replicate_config(payload: ReplicateConfigPayload):
                 print(f"Error persisting .env: {e}")
 
     return {"status": "ok", "configured": replicate_service.is_configured()}
+
+# Magic Hour Status & Configuration
+@app.get("/api/v1/magic-hour/status")
+def get_magic_hour_status():
+    """Returns Magic Hour configuration and remaining credit balance."""
+    is_conf = magic_hour_service.is_configured()
+    key = os.getenv("MAGIC_HOUR_API_KEY", "").strip()
+    masked = (key[:8] + "..." + key[-4:]) if len(key) > 12 else ("Configured" if is_conf else "")
+    account_info = magic_hour_service.get_account_info() if is_conf else None
+    return {
+        "configured": is_conf,
+        "token_preview": masked,
+        "account": account_info
+    }
+
+@app.post("/api/v1/magic-hour/config")
+def update_magic_hour_config(payload: MagicHourConfigPayload):
+    """Saves Magic Hour API key into environment and .env file."""
+    env_file = os.path.join(settings.BASE_DIR, ".env")
+    env_content = ""
+    if os.path.exists(env_file):
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                env_content = f.read()
+        except Exception:
+            pass
+
+    k = payload.api_key.strip()
+    if "..." not in k and "***" not in k and k.startswith("mhk_"):
+        os.environ["MAGIC_HOUR_API_KEY"] = k
+        magic_hour_service.api_key = k
+        if "MAGIC_HOUR_API_KEY=" in env_content:
+            env_content = re.sub(r'MAGIC_HOUR_API_KEY=.*', f'MAGIC_HOUR_API_KEY={k}', env_content)
+        else:
+            env_content += f"\nMAGIC_HOUR_API_KEY={k}\n"
+
+        if env_content and os.path.exists(env_file):
+            try:
+                with open(env_file, "w", encoding="utf-8") as f:
+                    f.write(env_content)
+            except Exception as e:
+                print(f"Error persisting .env: {e}")
+
+    return {
+        "status": "ok",
+        "configured": magic_hour_service.is_configured(),
+        "account": magic_hour_service.get_account_info()
+    }
 
 # Studio Endpoints: Autonomous Creation via DirectorAgent
 @app.post("/api/v1/studio/create-storyboard")

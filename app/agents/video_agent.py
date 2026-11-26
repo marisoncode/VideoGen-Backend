@@ -1,13 +1,15 @@
 import os
 from typing import List, Dict, Any, Optional
 from app.services.video_service import video_service
+from app.services.magic_hour_service import magic_hour_service
 from app.services.replicate_service import replicate_service
 
 class VideoAgent:
     """
     Dedicated Video Animation & Assembly Agent:
-    - Renders lifelike character animations with facial expressions via Replicate LTX-Video.
-    - Applies smooth 1080p cinematic camera movements (Ken Burns) when camera motion is selected.
+    - Primary: Renders lifelike character video animations via Magic Hour API (LTX-2.5).
+    - Secondary: Replicate LTX-Video.
+    - Fallback: Smooth 1080p cinematic camera movements (Ken Burns).
     - Burns sentence-timed subtitles with precise styling.
     - Concatenates scene clips into the finalized 1080p Full HD MP4.
     """
@@ -31,11 +33,26 @@ class VideoAgent:
         Produces an individual animated 1080p video clip synchronized with audio narration and subtitles.
         """
         dur = video_service.get_audio_duration(audio_path)
-        replicate_clip = None
+        animation_clip = None
         method_used = "camera_motion"
 
-        # 1. Try Replicate LTX-Video if configured
-        if image_path and motion_prompt and replicate_service.is_configured():
+        # 1. Primary: Try Magic Hour LTX-2.5 video animation if configured
+        if image_path and motion_prompt and magic_hour_service.is_configured():
+            try:
+                magic_clip = magic_hour_service.animate_character(
+                    image_path=image_path,
+                    motion_prompt=motion_prompt,
+                    duration_sec=int(dur)
+                )
+                if magic_clip and os.path.exists(magic_clip):
+                    animation_clip = magic_clip
+                    method_used = "magic_hour_video_animation"
+            except Exception as e:
+                print(f"[VideoAgent] Magic Hour animation notice on scene {scene_index + 1}: {e}")
+                animation_clip = None
+
+        # 2. Secondary: Try Replicate LTX-Video if Magic Hour was not available
+        if not animation_clip and image_path and motion_prompt and replicate_service.is_configured():
             try:
                 replicate_clip = replicate_service.animate_character(
                     image_path=image_path,
@@ -44,15 +61,16 @@ class VideoAgent:
                     duration_sec=int(dur)
                 )
                 if replicate_clip and os.path.exists(replicate_clip):
+                    animation_clip = replicate_clip
                     method_used = "replicate_facial_animation"
             except Exception as e:
                 print(f"[VideoAgent] Replicate animation notice on scene {scene_index + 1}: {e}")
-                replicate_clip = None
+                animation_clip = None
 
-        # 2. Render final clip
-        if replicate_clip and os.path.exists(replicate_clip):
+        # 3. Render final clip
+        if animation_clip and os.path.exists(animation_clip):
             video_service.render_motion_clip(
-                video_source_path=replicate_clip,
+                video_source_path=animation_clip,
                 audio_path=audio_path,
                 subtitle_text=subtitle_text,
                 output_clip_path=output_clip_path,
