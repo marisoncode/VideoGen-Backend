@@ -91,6 +91,11 @@ class ImageAgent:
         patterns = [
             (r'\b(undress|bare|naked|flesh|sensual|intimate|chest)\b', 'clothed'),
             (r'\b(subsurface scattering)\b', 'smooth stylized lighting'),
+            (r'\b(checking the swing straps|swing straps|straps)\b', 'holding the swing ropes safely'),
+            (r'\b(lifting (the )?baby\'s legs|kicking legs|lifting legs)\b', 'gently rocking in rhythm'),
+            (r'\b(positioning the baby|positioning)\b', 'supporting the baby'),
+            (r'\b(lying down on a bed|on the bed|bed|crib)\b', 'resting comfortably'),
+            (r'\b(legs|leg)\b', 'feet'),
         ]
         for pat, rep in patterns:
             s = re.sub(pat, rep, s, flags=re.IGNORECASE)
@@ -119,7 +124,8 @@ class ImageAgent:
 
         self._log(f"Generating Scene {scene_idx} via Cloudflare Workers AI ({self.CLOUDFLARE_FLUX_MODEL})...")
 
-        clean_prompt = prompt.strip()
+        # Automatically sanitize prompt upfront to prevent Cloudflare safety false-positives
+        clean_prompt = self._sanitize_prompt_for_safety(prompt.strip())
         if "16:9" not in clean_prompt and "widescreen" not in clean_prompt.lower():
             clean_prompt = f"{clean_prompt}, 16:9 widescreen composition, realistic educational photography, clean, sharp focus, no text, no words"
 

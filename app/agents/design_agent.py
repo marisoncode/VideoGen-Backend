@@ -17,8 +17,8 @@ class DesignAgent:
         },
         "pixar_3d": {
             "name": "3D Pixar / Disney 3D",
-            "aesthetic": "3D Disney Pixar animated film aesthetic, soft expressive character lighting, vibrant warm studio lighting, Octane render 8K, high quality character animation render",
-            "render_suffix": "Disney Pixar animation style, highly detailed 3D render, 16:9 widescreen composition, cinematic depth of field, adorable expressive stylized character design, beautifully proportioned symmetrical face with two bright expressive eyes and cute button nose, flawless facial anatomy, clean visual without text"
+            "aesthetic": "3D Disney Pixar animated film aesthetic, soft warm expressive lighting, Octane render 8K",
+            "render_suffix": "16:9 widescreen composition, adorable stylized character design, clean visual without text"
         },
         "storybook_watercolor": {
             "name": "Vintage Watercolor Storybook",
@@ -168,7 +168,7 @@ class DesignAgent:
 
         # 2C. Environmental Color-Bleed Prevention (Eliminates green skin and green studios):
         if "mint" in s.lower() or "green" in s.lower():
-            s = re.sub(r'\b(in the )?(mint[- ]green studio|green studio)\b', 'in the bright modern educational studio with warm neutral cream lighting and RBIQ logo wall', s, flags=re.IGNORECASE)
+            s = re.sub(r'\b(in\s+(the\s+)?)?(mint[- ]green studio|green studio)\b', 'in the bright modern educational studio with warm neutral cream lighting and RBIQ logo wall', s, flags=re.IGNORECASE)
             s = re.sub(r'\b(mint[- ]green background|green background)\b', 'neutral warm cream and wood studio background with RBIQ logo wall', s, flags=re.IGNORECASE)
             if "maya" in s.lower() and "warm radiant" not in s.lower():
                 s += ", Maya has natural warm radiant human skin tone and healthy authentic facial complexion (never green skin)"
