@@ -363,6 +363,10 @@ def get_custom_config():
 
                 # Ensure image_history is strictly scoped to this storyboard project
                 for idx, s in enumerate(data.get("scenes", [])):
+                    # Defensive fallback: if image_path exists, ensure preview_url is always populated
+                    if not s.get("preview_url") and s.get("image_path") and os.path.exists(s.get("image_path")):
+                        bname = os.path.basename(s.get("image_path"))
+                        s["preview_url"] = f"/static/uploads/{bname}"
                     s["image_history"] = _ensure_scene_history(s)
 
                 return data
