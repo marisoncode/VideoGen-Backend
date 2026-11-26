@@ -17,7 +17,7 @@ class MusicAgent:
         voice_audio_path: str,
         music_track_id: Optional[str],
         output_audio_path: str,
-        ducking_volume: float = 0.12
+        ducking_volume: float = 0.22
     ) -> str:
         """Ducks background music under speech audio."""
         return music_service.mix_audio_with_ducking(

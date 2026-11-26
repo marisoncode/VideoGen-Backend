@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 from typing import List, Dict, Any, Optional
 import imageio_ffmpeg
@@ -9,27 +10,43 @@ FFMPEG_BIN = imageio_ffmpeg.get_ffmpeg_exe()
 class MusicService:
     """
     Royalty-free Background Music & Audio Ducking Engine:
-    Provides built-in ambient educational music tracks and seamlessly
+    Provides built-in studio ambient educational music tracks and seamlessly
     ducks background music underneath the spoken AI voice narration.
     """
 
     def __init__(self):
+        self.assets_dir = os.path.join(settings.BASE_DIR, "app", "assets", "music")
         self.music_dir = os.path.join(settings.STORAGE_DIR, "music")
+        os.makedirs(self.assets_dir, exist_ok=True)
         os.makedirs(self.music_dir, exist_ok=True)
-        self._ensure_default_tracks()
+        self._sync_and_ensure_tracks()
 
-    def _ensure_default_tracks(self):
-        """Generates procedural high-quality ambient MP3 tracks if not present."""
+    def _sync_and_ensure_tracks(self):
+        """Syncs bundled studio MP3 tracks into storage, or generates procedural fallback."""
+        # 1. Sync bundled assets into storage for static serving & local processing
+        if os.path.exists(self.assets_dir):
+            for fname in os.listdir(self.assets_dir):
+                if fname.lower().endswith(".mp3"):
+                    src = os.path.join(self.assets_dir, fname)
+                    dst = os.path.join(self.music_dir, fname)
+                    if not os.path.exists(dst) or os.path.getsize(dst) < 50000:
+                        try:
+                            shutil.copy2(src, dst)
+                            print(f"[MusicService] Synced bundled asset track: {fname}")
+                        except Exception as e:
+                            print(f"[MusicService] Error syncing asset {fname}: {e}")
+
+        # 2. Procedural fallback presets if neither assets nor storage have the track
         presets = [
             {
                 "id": "inspiring_educational",
                 "filename": "inspiring_educational.mp3",
                 "filter": (
-                    "[1:a]volume=0.07[a1];[2:a]volume=0.05[a2];[3:a]volume=0.05[a3];"
-                    "[a1][a2][a3][0:a]amix=inputs=4,lowpass=f=1200,aecho=0.8:0.88:80:0.3[out]"
+                    "[1:a]volume=0.25[a1];[2:a]volume=0.20[a2];[3:a]volume=0.20[a3];"
+                    "[a1][a2][a3][0:a]amix=inputs=4:normalize=0,lowpass=f=1800,aecho=0.8:0.88:80:0.3[out]"
                 ),
                 "inputs": [
-                    ["-f", "lavfi", "-i", "anoisesrc=c=pink:r=44100:a=0.008"],
+                    ["-f", "lavfi", "-i", "anoisesrc=c=pink:r=44100:a=0.015"],
                     ["-f", "lavfi", "-i", "sine=frequency=220:sample_rate=44100"],
                     ["-f", "lavfi", "-i", "sine=frequency=277.18:sample_rate=44100"],
                     ["-f", "lavfi", "-i", "sine=frequency=329.63:sample_rate=44100"],
@@ -39,11 +56,11 @@ class MusicService:
                 "id": "gentle_lofi",
                 "filename": "gentle_lofi.mp3",
                 "filter": (
-                    "[1:a]volume=0.08[a1];[2:a]volume=0.06[a2];[3:a]volume=0.05[a3];"
-                    "[a1][a2][a3][0:a]amix=inputs=4,lowpass=f=750,aecho=0.7:0.8:120:0.35[out]"
+                    "[1:a]volume=0.28[a1];[2:a]volume=0.22[a2];[3:a]volume=0.20[a3];"
+                    "[a1][a2][a3][0:a]amix=inputs=4:normalize=0,lowpass=f=1200,aecho=0.7:0.8:120:0.35[out]"
                 ),
                 "inputs": [
-                    ["-f", "lavfi", "-i", "anoisesrc=c=brown:r=44100:a=0.012"],
+                    ["-f", "lavfi", "-i", "anoisesrc=c=brown:r=44100:a=0.020"],
                     ["-f", "lavfi", "-i", "sine=frequency=196.00:sample_rate=44100"],
                     ["-f", "lavfi", "-i", "sine=frequency=246.94:sample_rate=44100"],
                     ["-f", "lavfi", "-i", "sine=frequency=293.66:sample_rate=44100"],
@@ -53,11 +70,11 @@ class MusicService:
                 "id": "playful_curiosity",
                 "filename": "playful_curiosity.mp3",
                 "filter": (
-                    "[1:a]volume=0.07[a1];[2:a]volume=0.06[a2];[3:a]volume=0.06[a3];"
-                    "[a1][a2][a3][0:a]amix=inputs=4,highpass=f=200,lowpass=f=2400,aecho=0.75:0.85:50:0.25[out]"
+                    "[1:a]volume=0.25[a1];[2:a]volume=0.22[a2];[3:a]volume=0.22[a3];"
+                    "[a1][a2][a3][0:a]amix=inputs=4:normalize=0,highpass=f=200,lowpass=f=2800,aecho=0.75:0.85:50:0.25[out]"
                 ),
                 "inputs": [
-                    ["-f", "lavfi", "-i", "anoisesrc=c=pink:r=44100:a=0.006"],
+                    ["-f", "lavfi", "-i", "anoisesrc=c=pink:r=44100:a=0.012"],
                     ["-f", "lavfi", "-i", "sine=frequency=261.63:sample_rate=44100"],
                     ["-f", "lavfi", "-i", "sine=frequency=329.63:sample_rate=44100"],
                     ["-f", "lavfi", "-i", "sine=frequency=392.00:sample_rate=44100"],
@@ -82,7 +99,7 @@ class MusicService:
                 ]
                 try:
                     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                    print(f"[MusicService] Generated ambient track: {p['filename']}")
+                    print(f"[MusicService] Generated fallback ambient track: {p['filename']}")
                 except Exception as e:
                     print(f"[MusicService] Failed generating {p['filename']}: {e}")
 
@@ -120,11 +137,11 @@ class MusicService:
         voice_audio_path: str,
         music_track_id: Optional[str],
         output_audio_path: str,
-        ducking_volume: float = 0.12
+        ducking_volume: float = 0.22
     ) -> str:
         """
         Ducks background music under spoken narration:
-        Voice plays at full volume (100%), background music plays at ducking_volume (12-15%).
+        Voice plays with full clarity (100%), background music plays at ducking_volume (20-25%).
         """
         os.makedirs(os.path.dirname(output_audio_path), exist_ok=True)
 
@@ -137,17 +154,22 @@ class MusicService:
         music_filename = f"{music_track_id}.mp3"
         music_path = os.path.join(self.music_dir, music_filename)
 
-        if not os.path.exists(music_path):
-            # Fallback to copy voice
-            cmd = [FFMPEG_BIN, "-y", "-i", voice_audio_path, "-c:a", "libmp3lame", "-b:a", "192k", output_audio_path]
-            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            return output_audio_path
+        # Fallback to bundled assets dir if not in storage dir
+        if not os.path.exists(music_path) or os.path.getsize(music_path) < 1000:
+            asset_fallback = os.path.join(self.assets_dir, music_filename)
+            if os.path.exists(asset_fallback) and os.path.getsize(asset_fallback) > 1000:
+                music_path = asset_fallback
+            else:
+                print(f"[MusicService] Track {music_track_id} not found at {music_path} or {asset_fallback}, using voice only.")
+                cmd = [FFMPEG_BIN, "-y", "-i", voice_audio_path, "-c:a", "libmp3lame", "-b:a", "192k", output_audio_path]
+                subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                return output_audio_path
 
-        # FFmpeg amix with volume ducking and looped background music
+        # FFmpeg amix with volume ducking, normalize=0 (preserves voice at 100%), and looped background music
         filter_complex = (
             f"[0:a]volume=1.0,aformat=sample_rates=44100:channel_layouts=stereo[v];"
             f"[1:a]volume={ducking_volume},aformat=sample_rates=44100:channel_layouts=stereo[bg];"
-            f"[v][bg]amix=inputs=2:duration=first:dropout_transition=2[aout]"
+            f"[v][bg]amix=inputs=2:duration=first:dropout_transition=2:normalize=0[aout]"
         )
 
         cmd = [

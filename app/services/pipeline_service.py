@@ -88,7 +88,7 @@ class PipelineService:
                     voice_audio_path=raw_speech_path,
                     music_track_id=music_track,
                     output_audio_path=audio_path,
-                    ducking_volume=0.12
+                    ducking_volume=0.22
                 )
 
                 # Resolve image path
