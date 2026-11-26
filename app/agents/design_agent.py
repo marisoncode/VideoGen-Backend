@@ -17,8 +17,8 @@ class DesignAgent:
         },
         "pixar_3d": {
             "name": "3D Pixar / Disney 3D",
-            "aesthetic": "3D Disney Pixar animated film aesthetic, soft expressive character lighting, vibrant warm studio lighting, Octane render 8K",
-            "render_suffix": "Disney Pixar animation style, highly detailed 3D render, 16:9 widescreen composition, cinematic depth of field, adorable expressive stylized character design, clean visual without text"
+            "aesthetic": "3D Disney Pixar animated film aesthetic, soft expressive character lighting, vibrant warm studio lighting, Octane render 8K, high quality character animation render",
+            "render_suffix": "Disney Pixar animation style, highly detailed 3D render, 16:9 widescreen composition, cinematic depth of field, adorable expressive stylized character design, beautifully proportioned symmetrical face with two bright expressive eyes and cute button nose, flawless facial anatomy, clean visual without text"
         },
         "storybook_watercolor": {
             "name": "Vintage Watercolor Storybook",
@@ -235,7 +235,7 @@ class DesignAgent:
         if any(k in combined for k in ["baby", "infant", "toddler", "mirror play", "baby mirror", "caregiver", "sensory", "nursery", "parent"]):
             char = (
                 custom_char.strip() if custom_char and custom_char.strip() else
-                "Loving caring mother and an adorable happy 8-month-old baby with big curious bright eyes and rosy cheeks"
+                "Loving caring mother and an adorable happy 8-month-old baby with two large bright expressive eyes, a cute button nose, rosy cheeks, and a joyful smile, perfect facial symmetry, complete well-formed human anatomy"
             )
             setting = (
                 custom_env.strip() if custom_env and custom_env.strip() else

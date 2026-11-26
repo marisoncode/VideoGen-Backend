@@ -303,6 +303,11 @@ MANDATORY PEDAGOGICAL SPECIFICATIONS:
 - SCRIPT LENGTH & WORD COUNT: Speech rate is 2.3 words/second.
   * TOTAL narration across all scenes combined must equal approximately {total_target_words} words.
   * Each scene's narration must have approximately {words_per_scene} words (3-5 comprehensive, age-appropriate sentences). Do NOT write brief 1-sentence summaries!
+- SPOKEN NARRATION VOICE & PERSPECTIVE (MANDATORY):
+  * The 'narration' field is the EXACT spoken voiceover script delivered directly to the viewer by the voice actor.
+  * When an educator/host (such as Maya) is specified, she is the FIRST-PERSON SPEAKER ("I", "we", "you").
+  * All narration MUST be written as her direct dialogue to the viewers (e.g. "Welcome to RBIQ! I'm Maya, and today we'll explore...", "Next, let's gently present the strawberry to your baby...", "Thank you so much for joining me today! Practice these simple routines daily...").
+  * STRICTLY FORBIDDEN: Writing third-person descriptive stage directions in narration (e.g. "Maya returns to the studio", "The presenter explains", "Maya invites you"). Maya is the one talking! Never talk ABOUT Maya in the third person! The narration must be what Maya actually speaks aloud.
 - TARGET AUDIENCE / GRADE: {target_audience}.
 - {topic_instruction}
 - STRICT FACTUAL INTEGRITY: Preserve textbook facts and definitions accurately. Never fabricate unsupported claims.

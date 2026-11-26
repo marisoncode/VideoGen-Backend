@@ -89,11 +89,8 @@ class ImageAgent:
         import re
         s = prompt
         patterns = [
-            (r'\b(on a soft mat|on a mat|on the mat|soft mat|mat)\b', 'in a bright learning room'),
-            (r'\b(lying|laying|sleep|sleeping|lap|undress|bare|naked|flesh|sensual|intimate|chest|skin)\b', 'sitting'),
-            (r'\b(baby|infant)\b', 'toddler child'),
-            (r'\bsubsurface scattering\b', 'smooth stylized lighting'),
-            (r'\bbody\b', 'character'),
+            (r'\b(undress|bare|naked|flesh|sensual|intimate|chest)\b', 'clothed'),
+            (r'\b(subsurface scattering)\b', 'smooth stylized lighting'),
         ]
         for pat, rep in patterns:
             s = re.sub(pat, rep, s, flags=re.IGNORECASE)
