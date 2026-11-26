@@ -303,11 +303,11 @@ MANDATORY PEDAGOGICAL SPECIFICATIONS:
 - SCRIPT LENGTH & WORD COUNT: Speech rate is 2.3 words/second.
   * TOTAL narration across all scenes combined must equal approximately {total_target_words} words.
   * Each scene's narration must have approximately {words_per_scene} words (3-5 comprehensive, age-appropriate sentences). Do NOT write brief 1-sentence summaries!
-- SPOKEN NARRATION VOICE & PERSPECTIVE (MANDATORY):
+- SPOKEN NARRATION VOICE & PERSPECTIVE:
   * The 'narration' field is the EXACT spoken voiceover script delivered directly to the viewer by the voice actor.
-  * When an educator/host (such as Maya) is specified, she is the FIRST-PERSON SPEAKER ("I", "we", "you").
-  * All narration MUST be written as her direct dialogue to the viewers (e.g. "Welcome to RBIQ! I'm Maya, and today we'll explore...", "Next, let's gently present the strawberry to your baby...", "Thank you so much for joining me today! Practice these simple routines daily...").
-  * STRICTLY FORBIDDEN: Writing third-person descriptive stage directions in narration (e.g. "Maya returns to the studio", "The presenter explains", "Maya invites you"). Maya is the one talking! Never talk ABOUT Maya in the third person! The narration must be what Maya actually speaks aloud.
+  * When an educator/host (such as Maya) is specified in the prompt, she speaks directly in the FIRST-PERSON ("I", "we", "you").
+  * All narration MUST be written as direct spoken dialogue to the viewers.
+  * STRICTLY FORBIDDEN: Writing third-person descriptive stage directions in narration (e.g. "Maya returns to the studio", "The presenter explains", "Maya invites you"). The narration must be the exact words spoken aloud directly to the audience.
 - TARGET AUDIENCE / GRADE: {target_audience}.
 - {topic_instruction}
 - STRICT FACTUAL INTEGRITY: Preserve textbook facts and definitions accurately. Never fabricate unsupported claims.
@@ -319,12 +319,14 @@ MANDATORY PEDAGOGICAL SPECIFICATIONS:
     - If both appear in one wide shot, explicitly isolate them: "On the ground below stands a golden jackal looking up; high above in the top branches of a towering 35-foot tree perches a separate black crow. Distinct separate creatures."
   * CONCRETE DESCRIPTIONS FOR CULTURAL FOOD & PROPS: The AI image generator does NOT recognize regional words like 'vada' alone and will draw a mango or random fruit! Always describe cultural food physically: "a round golden-brown crispy savory fried doughnut fritter with a hole in the center (medu vada snack, savory fried pastry, distinct from any fruit or mango)".
   * TREE HEIGHT & SCALE: Always convey vertical scale when an animal is in a tree: "extreme low-angle shot looking up at a towering 35-foot tall tree with the forest ground far below" so the tree looks impressively tall.
-- CRITICAL MULTI-CHARACTER & MATERIAL RULE (MANDATORY):
-  * For all baby & parent demonstration scenes (Scenes 2 to 7): The 'visual_action' MUST explicitly feature BOTH the mother AND the baby together in the 16:9 frame! NEVER omit the mother. Describe both characters: "Medium shot of a loving mother and her adorable baby together in a cozy nursery room, mother warmly demonstrating [activity/material] with the happy baby".
-  * The required learning material for the lesson (e.g. baby mirror, fresh strawberry, fabric swing, clapping hands) MUST be explicitly described as being held and used by the mother with the baby in the visual_action.
-  * For studio host scenes (Scene 1 and Scene 8): Describe Maya in a bright modern television studio with warm cream/wood walls and the RBIQ logo wall. Maya's clothing color belongs ONLY on her shirt/top—NEVER make the studio walls, room, or background green, to prevent green lighting on Maya's face!
+- DYNAMIC TOPIC & CHARACTER ADAPTATION (CONTEXT-SENSITIVE):
+  * FOR PARENT & BABY / RBIQ CURRICULUM:
+    - For studio host scenes (Scene 1 and Outro): If Maya or an educator is requested, describe her standing in a bright modern television studio with warm cream/wood walls and the RBIQ logo wall. Maya's clothing color belongs ONLY on her shirt/top—NEVER make the studio walls green.
+    - For all middle baby & parent demonstration scenes: The 'visual_action' MUST explicitly feature BOTH the mother AND the baby together in the 16:9 frame (never omit the mother). The required learning material for the lesson (e.g. baby mirror, strawberry, fabric swing, playmat) MUST be explicitly described as being held and used by the mother with the baby in the visual_action.
+  * FOR GENERAL SCIENCE, STORIES, FABLES, NATURE, AND HISTORY TOPICS:
+    - Visually portray ONLY the actual subjects, animals, historical figures, or scientific mechanisms of the topic (e.g., planets in the solar system, cellular biology, wildlife, laboratory equipment).
+    - Do NOT introduce Maya, presenters, mothers, or babies unless explicitly requested by the user prompt! Keep the visual scenes 100% faithful to the requested topic.
 - CRITICAL: NO text, lettering, or watermarks inside image visual action. Labels and subtitles will be burned during video assembly.
-- NO UNWANTED TEACHERS/STUDENTS/CLASSROOMS: Do NOT introduce human students, teachers, presenters, or classrooms unless the user explicitly requested them in the prompt. For stories, fables, animals, and nature narratives, visually portray ONLY the actual characters, animals, and physical environments of the story!
 - SAFETY: Visual descriptions must be wholesome, family-friendly, and educational. Avoid physical contact words or resting on beds/mats to prevent cloud image safety filter false-positives.
 
 Output JSON strictly adhering to this schema (You MUST generate at least {min_scenes} sequential scenes in the 'scenes' list):
