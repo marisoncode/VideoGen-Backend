@@ -304,9 +304,12 @@ MANDATORY PEDAGOGICAL SPECIFICATIONS:
   * TOTAL narration across all scenes combined must equal approximately {total_target_words} words.
   * Each scene's narration must have approximately {words_per_scene} words (3-5 comprehensive, age-appropriate sentences). Do NOT write brief 1-sentence summaries!
 - SPOKEN NARRATION VOICE & PERSPECTIVE:
-  * The 'narration' field is the EXACT spoken voiceover script delivered directly to the viewer by the voice actor.
+  * The 'narration' field is the EXACT spoken voiceover script delivered directly to the viewer by the voice actor(s).
   * When an educator/host (such as Maya) is specified in the prompt, she speaks directly in the FIRST-PERSON ("I", "we", "you").
-  * All narration MUST be written as direct spoken dialogue to the viewers.
+  * MULTI-CHARACTER DIALOGUE MODE: If the prompt asks for multiple speaking characters (e.g., a narrator PLUS two friends/boys/characters talking to each other), format each spoken turn inside 'narration' on its own line with a speaker tag:
+    "Narrator: Once upon a time, two friends walked into a quiet forest.\nArjun: Look at those huge footprints on the trail!\nRahul: Wait... do you hear that growl behind the bushes?"
+    This lets the Voice Agent automatically synthesize each character in a distinct voice!
+  * For single-presenter or single-narrator videos, write plain spoken lines WITHOUT speaker prefixes.
   * STRICTLY FORBIDDEN: Writing third-person descriptive stage directions in narration (e.g. "Maya returns to the studio", "The presenter explains", "Maya invites you"). The narration must be the exact words spoken aloud directly to the audience.
 - TARGET AUDIENCE / GRADE: {target_audience}.
 - {topic_instruction}

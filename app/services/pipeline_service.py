@@ -63,6 +63,7 @@ class PipelineService:
             os.makedirs(work_dir, exist_ok=True)
 
             clips = []
+            speaker_voice_map: Dict[str, str] = {}
             total_scenes = len(scenes)
 
             for idx, scene in enumerate(scenes):
@@ -73,14 +74,20 @@ class PipelineService:
                 raw_img = scene.get("image_path") or scene.get("preview_url") or ""
                 motion_prompt = scene.get("motion_prompt") or ""
                 motion_style = scene.get("motion_style") or "zoom_in"
+                scene_voice = (scene.get("voice") or "").strip() or voice
 
                 progress_val = 15 + int((idx / total_scenes) * 70)
                 job["progress_pct"] = progress_val
                 job["step_message"] = f"[VoiceAgent & VideoAgent] Rendering Scene {s_num}/{total_scenes}: {s_title}..."
 
-                # 1. VoiceAgent: Synthesizes Speech Narration
+                # 1. VoiceAgent: Synthesizes Speech Narration (supports per-scene voice & multi-speaker lines)
                 raw_speech_path = os.path.join(work_dir, f"speech_raw_{s_num}.mp3")
-                voice_agent.synthesize_speech(narration, raw_speech_path, voice=voice)
+                voice_agent.synthesize_speech(
+                    narration,
+                    raw_speech_path,
+                    voice=scene_voice,
+                    speaker_voice_map=speaker_voice_map
+                )
 
                 # 2. MusicAgent: Mixes Background Music with Audio Ducking
                 audio_path = os.path.join(work_dir, f"audio_{s_num}.mp3")

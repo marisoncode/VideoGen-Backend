@@ -40,6 +40,30 @@ class VoiceAgent:
             "name": "Guy (Educational Lecturer)",
             "locale": "US English Clear",
             "gender": "Male"
+        },
+        {
+            "id": "en-IN-PrabhatNeural",
+            "name": "Prabhat (Indian English Male)",
+            "locale": "Studio Indian English",
+            "gender": "Male"
+        },
+        {
+            "id": "en-GB-RyanNeural",
+            "name": "Ryan (Expressive British Male)",
+            "locale": "UK English Expressive",
+            "gender": "Male"
+        },
+        {
+            "id": "en-US-ChristopherNeural",
+            "name": "Christopher (Deep Story Narrator)",
+            "locale": "US English Deep",
+            "gender": "Male"
+        },
+        {
+            "id": "en-US-AnaNeural",
+            "name": "Ana (Young Kid / Child Voice)",
+            "locale": "US English Youth",
+            "gender": "Female"
         }
     ]
 
@@ -110,8 +134,19 @@ class VoiceAgent:
             pass
         return 5.0
 
-    def synthesize_speech(self, text: str, output_path: str, voice: str) -> str:
-        """Synthesizes voice narration audio file."""
-        return tts_service.generate_speech(text, output_path, voice=voice)
+    def synthesize_speech(
+        self,
+        text: str,
+        output_path: str,
+        voice: str,
+        speaker_voice_map: Optional[Dict[str, str]] = None
+    ) -> str:
+        """Synthesizes single-voice or multi-character dialogue narration audio."""
+        return tts_service.generate_multi_speaker_speech(
+            text=text,
+            output_path=output_path,
+            default_voice=voice,
+            speaker_voice_map=speaker_voice_map
+        )
 
 voice_agent = VoiceAgent()

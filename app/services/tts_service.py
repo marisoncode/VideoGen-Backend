@@ -1,4 +1,5 @@
 import os
+import re
 import socket
 import asyncio
 import subprocess
@@ -45,7 +46,39 @@ AVAILABLE_VOICES = [
         "name": "Guy (Clear Educational Male)",
         "gender": "Male",
         "locale": "en-US"
+    },
+    {
+        "id": "en-GB-RyanNeural",
+        "name": "Ryan (Expressive British Male)",
+        "gender": "Male",
+        "locale": "en-GB"
+    },
+    {
+        "id": "en-US-ChristopherNeural",
+        "name": "Christopher (Deep Story Narrator Male)",
+        "gender": "Male",
+        "locale": "en-US"
+    },
+    {
+        "id": "en-US-AnaNeural",
+        "name": "Ana (Young Child / Kid Character)",
+        "gender": "Female",
+        "locale": "en-US"
     }
+]
+
+MALE_CHARACTER_VOICES = [
+    "en-US-GuyNeural",
+    "en-IN-PrabhatNeural",
+    "en-GB-RyanNeural",
+    "en-US-ChristopherNeural",
+]
+
+FEMALE_CHARACTER_VOICES = [
+    "en-US-JennyNeural",
+    "en-IN-NeerjaNeural",
+    "en-US-AvaNeural",
+    "en-US-AnaNeural",
 ]
 
 def is_online() -> bool:
@@ -207,5 +240,145 @@ $synth.Dispose();
         ]
         subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return output_path
+
+    @classmethod
+    def _resolve_character_voice(
+        cls,
+        speaker: str,
+        default_voice: str,
+        speaker_voice_map: Dict[str, str]
+    ) -> str:
+        """Assigns a consistent, distinct free Edge-TTS voice to each named character."""
+        key = speaker.strip().lower()
+        if key in speaker_voice_map:
+            return speaker_voice_map[key]
+
+        # Narrator / Host uses the project's default voice (fallback to Jenny/Christopher if cloned)
+        if any(w in key for w in ["narrator", "storyteller", "host", "maya", "presenter"]):
+            resolved = default_voice
+            if resolved in ["cloned-reference-voice", "Reference Voice Clone (100% Match)"] or resolved.startswith("custom_voice:"):
+                resolved = "en-IN-NeerjaNeural" if "maya" in key else "en-US-JennyNeural"
+            speaker_voice_map[key] = resolved
+            return resolved
+
+        used = set(speaker_voice_map.values())
+        is_female = any(w in key for w in ["girl", "woman", "mother", "mom", "sister", "aunt", "queen", "princess", "grandma", "dadi", "priya", "ananya", "sita", "emma", "maya"])
+        is_child = any(w in key for w in ["child", "kid", "baby", "little"])
+
+        if is_child and "en-US-AnaNeural" not in used:
+            speaker_voice_map[key] = "en-US-AnaNeural"
+            return "en-US-AnaNeural"
+
+        pool = FEMALE_CHARACTER_VOICES if is_female else MALE_CHARACTER_VOICES
+        for v in pool:
+            if v not in used:
+                speaker_voice_map[key] = v
+                return v
+
+        # Secondary pool if primary pool exhausted
+        all_pool = MALE_CHARACTER_VOICES + FEMALE_CHARACTER_VOICES
+        for v in all_pool:
+            if v not in used:
+                speaker_voice_map[key] = v
+                return v
+
+        chosen = pool[len(speaker_voice_map) % len(pool)]
+        speaker_voice_map[key] = chosen
+        return chosen
+
+    @classmethod
+    def generate_multi_speaker_speech(
+        cls,
+        text: str,
+        output_path: str,
+        default_voice: str = "en-US-JennyNeural",
+        speaker_voice_map: Optional[Dict[str, str]] = None
+    ) -> str:
+        """
+        Parses 'Speaker: Dialogue' lines and synthesizes each character with a distinct
+        free Edge Neural TTS voice, stitching turns together seamlessly via FFmpeg.
+        Falls back to standard single-voice generate_speech if no speaker tags exist.
+        """
+        clean_text = (text or "").strip()
+        if not clean_text:
+            return cls.generate_speech("", output_path, voice=default_voice)
+
+        # Split lines or inline 'Speaker: ...' turns
+        line_pattern = re.compile(r'^\s*([A-Za-z][A-Za-z0-9 _\-\.]{0,24}?)\s*:\s*(.+)$')
+        raw_lines = [ln.strip() for ln in clean_text.splitlines() if ln.strip()]
+
+        turns = []
+        for ln in raw_lines:
+            m = line_pattern.match(ln)
+            if m:
+                spk, dlg = m.group(1).strip(), m.group(2).strip()
+                # Avoid treating URLs or timestamps (e.g. "http:", "10:") as speakers
+                if spk.lower() not in ["http", "https", "note", "tip"] and dlg:
+                    turns.append((spk, dlg))
+            elif turns:
+                # Continuation of previous speaker's line
+                prev_spk, prev_dlg = turns[-1]
+                turns[-1] = (prev_spk, f"{prev_dlg} {ln}")
+
+        # If fewer than 1 tagged speaker turn, use standard single-voice synthesis
+        if not turns:
+            return cls.generate_speech(clean_text, output_path, voice=default_voice)
+
+        if speaker_voice_map is None:
+            speaker_voice_map = {}
+
+        # Single tagged turn (just strip the 'Speaker:' prefix so TTS doesn't read it)
+        if len(turns) == 1:
+            spk, dlg = turns[0]
+            v = cls._resolve_character_voice(spk, default_voice, speaker_voice_map)
+            return cls.generate_speech(dlg, output_path, voice=v)
+
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        seg_dir = os.path.dirname(output_path)
+        seg_files = []
+        pause_file = os.path.join(seg_dir, f"_pause_{os.path.basename(output_path)}.mp3")
+
+        try:
+            # Create a crisp 0.25s silence pause between character turns
+            subprocess.run([
+                FFMPEG_BIN, "-y",
+                "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+                "-t", "0.25",
+                "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100", "-ac", "2",
+                pause_file
+            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            for idx, (spk, dlg) in enumerate(turns):
+                v = cls._resolve_character_voice(spk, default_voice, speaker_voice_map)
+                seg_path = os.path.join(seg_dir, f"_seg_{idx}_{os.path.basename(output_path)}")
+                cls.generate_speech(dlg, seg_path, voice=v)
+                if os.path.exists(seg_path) and os.path.getsize(seg_path) > 500:
+                    seg_files.append(seg_path)
+                    if idx < len(turns) - 1 and os.path.exists(pause_file):
+                        seg_files.append(pause_file)
+
+            if not seg_files:
+                return cls.generate_speech(clean_text, output_path, voice=default_voice)
+
+            # Concatenate all speaker segments cleanly
+            cmd = [FFMPEG_BIN, "-y"]
+            for sf in seg_files:
+                cmd.extend(["-i", sf])
+            filter_inputs = "".join(f"[{i}:a]" for i in range(len(seg_files)))
+            cmd.extend([
+                "-filter_complex", f"{filter_inputs}concat=n={len(seg_files)}:v=0:a=1[outa]",
+                "-map", "[outa]",
+                "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100", "-ac", "2",
+                output_path
+            ])
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return output_path
+        finally:
+            for sf in set(seg_files + [pause_file]):
+                if sf != output_path and os.path.exists(sf):
+                    try:
+                        os.remove(sf)
+                    except Exception:
+                        pass
 
 tts_service = TTSService()
