@@ -70,6 +70,9 @@ def cleanup_obsolete_files():
 class ReplicateConfigPayload(BaseModel):
     api_token: str
 
+class GroqConfigPayload(BaseModel):
+    api_key: str
+
 class CloudflareConfigPayload(BaseModel):
     account_id: str
     api_token: str
@@ -150,6 +153,40 @@ def get_groq_status():
         "configured": is_conf,
         "token_preview": masked,
         "model": "openai/gpt-oss-120b"
+    }
+
+@app.post("/api/v1/groq/config")
+def update_groq_config(payload: GroqConfigPayload):
+    """Saves Groq API key into environment and .env file."""
+    env_file = os.path.join(settings.BASE_DIR, ".env")
+    env_content = ""
+    if os.path.exists(env_file):
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                env_content = f.read()
+        except Exception:
+            pass
+
+    k = payload.api_key.strip()
+    if "..." not in k and "***" not in k and k.startswith("gsk_"):
+        os.environ["GROQ_API_KEY"] = k
+        settings.GROQ_API_KEY = k
+        if "GROQ_API_KEY=" in env_content:
+            env_content = re.sub(r'GROQ_API_KEY=.*', f'GROQ_API_KEY={k}', env_content)
+        else:
+            env_content += f"\nGROQ_API_KEY={k}\n"
+
+        if env_content and os.path.exists(env_file):
+            try:
+                with open(env_file, "w", encoding="utf-8") as f:
+                    f.write(env_content)
+            except Exception as e:
+                print(f"Error persisting .env: {e}")
+
+    token = os.getenv("GROQ_API_KEY", "").strip() or getattr(settings, "GROQ_API_KEY", "").strip()
+    return {
+        "status": "ok",
+        "configured": bool(token and token.startswith("gsk_"))
     }
 
 # Cloudflare Workers AI Status & Configuration (10,000 Free Neurons/Day)
