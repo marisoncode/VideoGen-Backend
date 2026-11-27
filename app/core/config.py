@@ -25,7 +25,6 @@ class Settings(BaseSettings):
     CLOUDFLARE_ACCOUNT_ID: str = ""
     CLOUDFLARE_API_TOKEN: str = ""
     REPLICATE_API_TOKEN: str = ""
-    MAGIC_HOUR_API_KEY: str = ""
 
     # Default Voice
     DEFAULT_VOICE: str = "Reference Voice Clone (100% Match)"

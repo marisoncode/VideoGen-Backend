@@ -1,15 +1,13 @@
 import os
 from typing import List, Dict, Any, Optional
 from app.services.video_service import video_service
-from app.services.magic_hour_service import magic_hour_service
 from app.services.replicate_service import replicate_service
 
 class VideoAgent:
     """
     Dedicated Video Animation & Assembly Agent:
-    - Primary: Renders lifelike character video animations via Magic Hour API (LTX-2.5).
-    - Secondary: Replicate LTX-Video.
-    - Fallback: Smooth 1080p cinematic camera movements (Ken Burns).
+    - Renders lifelike character animations with facial expressions via Replicate LTX-Video.
+    - Applies smooth 1080p cinematic camera movements (Ken Burns) when camera motion is selected.
     - Burns sentence-timed subtitles with precise styling.
     - Concatenates scene clips into the finalized 1080p Full HD MP4.
     """
@@ -36,23 +34,8 @@ class VideoAgent:
         animation_clip = None
         method_used = "camera_motion"
 
-        # 1. Primary: Try Magic Hour LTX-2.5 video animation if configured
-        if image_path and motion_prompt and magic_hour_service.is_configured():
-            try:
-                magic_clip = magic_hour_service.animate_character(
-                    image_path=image_path,
-                    motion_prompt=motion_prompt,
-                    duration_sec=int(dur)
-                )
-                if magic_clip and os.path.exists(magic_clip):
-                    animation_clip = magic_clip
-                    method_used = "magic_hour_video_animation"
-            except Exception as e:
-                print(f"[VideoAgent] Magic Hour animation notice on scene {scene_index + 1}: {e}")
-                animation_clip = None
-
-        # 2. Secondary: Try Replicate LTX-Video if Magic Hour was not available
-        if not animation_clip and image_path and motion_prompt and replicate_service.is_configured():
+        # 1. Try Replicate LTX-Video if configured
+        if image_path and motion_prompt and replicate_service.is_configured():
             try:
                 replicate_clip = replicate_service.animate_character(
                     image_path=image_path,
