@@ -8,7 +8,7 @@ if os.path.exists(_env_path):
     load_dotenv(_env_path, override=True)
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "MIWAY Video application"
+    PROJECT_NAME: str = "MIWAY Video Application"
     API_V1_STR: str = "/api/v1"
     
     # Paths
