@@ -25,7 +25,7 @@ from app.agents import (
 )
 
 app = FastAPI(
-    title="AI Animated Explainer Video Studio",
+    title="MIWAY Video application",
     description="Multi-Agent AI Studio for 1080p Explainer Video Production",
     version="2.1.0"
 )
@@ -100,7 +100,7 @@ class CustomVideoPayload(BaseModel):
 def read_root():
     return {
         "status": "online",
-        "service": "AI Animated Explainer Video Studio",
+        "service": "MIWAY Video application",
         "agents": [
             "ScriptAgent",
             "DesignAgent",
